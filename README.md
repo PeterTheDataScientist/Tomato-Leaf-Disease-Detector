@@ -1,122 +1,65 @@
-# 🍅 Tomato Leaf Disease Detection System
+# Tomato Leaf Disease Detection: Hybrid CNN-Transformer
 
-> **BSc Dissertation Project** · University of Zimbabwe · 2025
-> Deployed as a **Streamlit web application** for real-time inference
+A robustness-engineered deep learning model that classifies ten tomato leaf conditions from a single phone photo, built to survive real field conditions (low light, budget cameras, blur, clutter) rather than only scoring well on clean laboratory images.
 
-A deep learning–based image classification system for detecting tomato leaf diseases from field photographs — built as a BSc final year dissertation and deployed as an accessible web app for practical use in agricultural settings across Zimbabwe and Africa.
+**Streamlit demo:** https://tomato-leaf-disease-detector-peter.streamlit.app/
 
----
+This is my completed BSc dissertation (University of Zimbabwe, 2026) and the proof of concept for my ongoing, independent multi-crop research, ZimCropGuard.
 
-## 🎯 Problem Statement
+## Architecture
 
-Tomato farming is a critical income source for smallholder farmers across Zimbabwe and sub-Saharan Africa. Crop diseases cause significant yield losses, yet farmers in rural areas often lack access to agronomists or diagnostic tools. This system provides an automated solution for early disease detection directly from a photograph, accessible via a simple web interface — no specialist knowledge required.
+A hybrid CNN-Transformer (a Transformer-augmented CNN). It is **not** a Vision Transformer. The description below matches `model.py` exactly.
 
----
+- An ImageNet-pretrained **ResNet18** backbone is the feature extractor, producing a 512-channel 7x7 feature map.
+- Two parallel branches read that map:
+  - **CNN-global branch:** global average pooling followed by a linear projection to a 256-dimensional vector.
+  - **Attention branch:** the 49 spatial cells are flattened into 49 tokens, each projected to 256 dimensions, with a learnable CLS token and positional embeddings prepended.
+- A **4-layer Transformer encoder** (8 attention heads, GELU MLP, pre-norm residual blocks) reasons over the tokens. The embedding dimension (`embed_dim`) is 256.
+- **Late fusion:** the CNN global vector is concatenated with the Transformer CLS output to form a 512-dimensional fused representation, which an MLP classifier head maps to the class logits.
 
-## 🏗️ System Architecture
+Framework: **PyTorch only.** No TensorFlow, no Keras.
+
+## Robustness
+
+The shipped weights (`hybrid_tomato_leaf_best_lowlight_hardened.pth`) are the low-light-hardened model. It was trained with field-simulating augmentation (brightness and contrast variation, Gaussian noise and blur, perspective transforms, resolution simulation), MixUp, and label smoothing, so it degrades gracefully on real phone photos instead of collapsing off clean data.
+
+## What's in this repo
+
+This is an inference-plus-weights repository. It contains the app, the architecture, and the trained weights, not the training pipeline.
+
+- `app.py`: Streamlit app for inference.
+- `model.py`: the hybrid CNN-Transformer architecture.
+- `hybrid_tomato_leaf_best_lowlight_hardened.pth`: trained hardened weights.
+- `class_names.json`: class label mapping.
+- `requirements.txt`: Python dependencies.
+
+Note: `__pycache__/` should be gitignored and is not part of the repo. Add a `.gitignore` line for it:
 
 ```
-Input Image (field photo)
-        ↓
- Preprocessing & Augmentation
-        ↓
-  CNN Model (TensorFlow/Keras)
-        ↓
-  Disease Classification
-        ↓
- Streamlit Web Application
-        ↓
- Real-time Prediction + Confidence Score
+__pycache__/
 ```
 
----
+## Run locally
 
-## 🦠 Disease Classes Detected
-
-| Class | Disease |
-|-------|---------|
-| Bacterial Spot | Xanthomonas bacterial infection |
-| Early Blight | Alternaria solani fungal disease |
-| Late Blight | Phytophthora infestans |
-| Leaf Mold | Passalora fulva |
-| Septoria Leaf Spot | Septoria lycopersici |
-| Spider Mites | Two-spotted spider mite damage |
-| Target Spot | Corynespora cassiicola |
-| Yellow Leaf Curl Virus | Tomato yellow leaf curl virus |
-| Mosaic Virus | Tomato mosaic virus |
-| Healthy | No disease detected |
-
----
-
-## 🛠️ Tech Stack
-
-| Component | Technology |
-|-----------|-----------|
-| Deep Learning Framework | TensorFlow / Keras |
-| Model Architecture | CNN with transfer learning (ImageNet) |
-| Data Augmentation | Keras ImageDataGenerator |
-| Deployment | Streamlit web application |
-| Language | Python 3.x |
-
----
-
-## 📊 Model Training
-
-- **Dataset:** PlantVillage dataset (labeled tomato leaf images)
-- **Approach:** Transfer learning — pre-trained ImageNet base + custom classification head
-- **Augmentation:** Random flips, rotations, zoom, brightness variation
-- **Evaluation:** Accuracy, Precision, Recall, F1-score per class
-- **Inference:** Real-time single image and batch prediction
-
----
-
-## 🚀 Running the Application
-
-### Prerequisites
 ```bash
-pip install tensorflow streamlit numpy pillow
-```
-
-### Run
-```bash
+pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Upload a tomato leaf image and the model returns the predicted disease class with a confidence score.
+## Parameter count
 
----
+The total parameter count is not asserted here. Print it directly from the model:
 
-## 📁 Repository Structure
-
-```
-Tomato-Leaf-Disease-Detector/
-├── app.py                    # Streamlit web application
-├── model/
-│   └── tomato_model.h5       # Trained model weights
-├── notebooks/
-│   └── training.ipynb        # Model training notebook
-├── requirements.txt
-└── README.md
+```python
+from model import HybridCNNTransformer
+model = HybridCNNTransformer(num_classes=10)
+print(sum(p.numel() for p in model.parameters()))
 ```
 
----
+## Research context
 
-## 🏆 Recognition
+This tomato model is the completed BSc dissertation (2026) and the proof of concept beneath **ZimCropGuard**, ongoing independent research that scales the same robustness-first approach to five Zimbabwean staple crops and 21+ disease classes with a larger dual-backbone (EfficientNetB0 and ViT-B/16) architecture.
 
-- 🎓 **BSc Dissertation Project** — Data Science & Informatics, University of Zimbabwe (2025)
-- 🌐 Deployed as a live Streamlit web application
+## Licence
 
----
-
-## 👤 Author
-
-**Peter Tinashe Mundowa**
-Data Scientist & AI Engineer · Harare, Zimbabwe 🇿🇼
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/peter-tinashe-mundowa-758a2b239/)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Visit-f5a623?style=flat&logo=github)](https://peterthedatascientist.github.io)
-[![Zindi](https://img.shields.io/badge/Zindi-PeterTheAnalyst-1DA462?style=flat)](https://zindi.africa/users/PeterTheAnalyst)
-
----
-
-*Applying AI to protect food security across Africa.* 🌍
+No licence is included yet. An **MIT Licence** is recommended for this project: it is permissive, widely understood, and appropriate for a public research demo. Add a `LICENSE` file with the standard MIT text to apply it.
