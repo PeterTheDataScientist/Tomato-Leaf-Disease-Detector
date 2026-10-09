@@ -4,7 +4,7 @@ A robustness-engineered deep learning model that classifies ten tomato leaf cond
 
 **Streamlit demo:** https://tomato-leaf-disease-detector-peter.streamlit.app/
 
-This is my completed BSc dissertation (University of Zimbabwe, 2026) and the proof of concept for my ongoing, independent multi-crop research, ZimCropGuard.
+This is my completed BSc Honours dissertation (University of Zimbabwe, 2026) and the proof of concept for my ongoing, independent multi-crop research, ZimCropGuard.
 
 ## Architecture
 
@@ -58,7 +58,7 @@ print(sum(p.numel() for p in model.parameters()))
 
 ## Research context
 
-This tomato model is the completed BSc dissertation (2026) and the proof of concept beneath **ZimCropGuard**, ongoing independent research that scales the same robustness-first approach to five Zimbabwean staple crops and 21+ disease classes with a larger dual-backbone (EfficientNetB0 and ViT-B/16) architecture.
+This tomato model is the completed BSc Honours dissertation (2026) and the proof of concept beneath **ZimCropGuard**, ongoing independent research that scales the same robustness-first approach to five Zimbabwean staple crops and 21+ disease classes with a larger dual-backbone (EfficientNetB0 and ViT-B/16) architecture.
 
 ## Licence
 
